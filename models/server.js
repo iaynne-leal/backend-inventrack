@@ -1,6 +1,6 @@
-import express  from "express";
-import cors from "cors"
-import { db } from "../database/connection.js"
+import express from "express";
+import cors from "cors";
+import { db } from "../database/connection.js";
 import fileUpload from "express-fileupload";
 import { routerRole } from "../routes/role.js";
 import { routerUser } from "../routes/user.js";
@@ -15,66 +15,55 @@ import { routerThReport } from "../routes/thReport.js";
 import { routerArea } from "../routes/area.js";
 import { routerPost } from "../routes/post.js";
 
-
-const whiteList = ['http://localhost:3000'];
+const whiteList = ['http://localhost:3000', 'https://inventrack.micoopecoban.com']; // Añade aquí el dominio de tu aplicación cliente
 const corsOptions = {
-    origin: (origin, callback) => {
-        const exist = whiteList.some(domain => domain === origin);
-        if (exist) {
+    origin: function (origin, callback) {
+        if (whiteList.indexOf(origin) !== -1 || !origin) {
             callback(null, true);
         } else {
-            callback(new Error('Access denied'));
+            callback(new Error('Not allowed by CORS'));
         }
-    }
-}
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
 
-//server
 class Server {
-
     constructor() {
         this.app = express();
         this.port = process.env.PORT;
-        this.rolePath = '/api/role'
-        this.userPath = '/api/user'
+        this.rolePath = '/api/role';
+        this.userPath = '/api/user';
         this.authPath = '/api/auth';
-        this.collaboratorPath = '/api/collaborator'
-        this.countInventoryPath = '/api/countInventory'
-        this.comInventoryPath = '/api/comInventory'
-        this.thInventoryPath = '/api/thInventory'
-        this.countReportPath = '/api/countReport'
-        this.comReportPath = '/api/comReport'
-        this.thReportPath = '/api/thReport'
-        this.areaPath = '/api/area'
-        this.postPath = '/api/post'
+        this.collaboratorPath = '/api/collaborator';
+        this.countInventoryPath = '/api/countInventory';
+        this.comInventoryPath = '/api/comInventory';
+        this.thInventoryPath = '/api/thInventory';
+        this.countReportPath = '/api/countReport';
+        this.comReportPath = '/api/comReport';
+        this.thReportPath = '/api/thReport';
+        this.areaPath = '/api/area';
+        this.postPath = '/api/post';
      
-
-        //Conexion a bd
         this.dbConnection();
-
-        //Middlewares
         this.middlewares();
-
-        //Rutas de mi aplicacion
         this.routes();
     }
 
-    middlewares() { // son funciones que se ejecutan siempre que se levante el servidor
-
-        //CORS
-        this.app.use(cors());
-
-        //Lectura y paseo del body
+    middlewares() {
+        // CORS
+        this.app.use(cors(corsOptions));
+        // Lectura y parseo del body
         this.app.use(express.json());
-
-        //directorio publico
-        this.app.use(express.static('public'))
-
-        //subida de archivos al servidor
+        // Directorio público
+        this.app.use(express.static('public'));
+        // Subida de archivos al servidor
         this.app.use(fileUpload({
             useTempFiles: true,
             tempFileDir: '/tmp/'
         }));
-
     }
 
     async dbConnection() {
@@ -87,31 +76,25 @@ class Server {
     }
 
     routes() {
-        
-        this.app.use(this.rolePath, routerRole)
-        this.app.use(this.userPath, routerUser)
-        this.app.use(this.authPath, routerAuth)
-        this.app.use(this.collaboratorPath, routerCollaborator)
-        this.app.use(this.countInventoryPath, routerCountInventory)
-        this.app.use(this.comInventoryPath, routerComInventory)
-        this.app.use(this.thInventoryPath, routerThInventory)
-        this.app.use(this.countReportPath, routerCountReport)
-        this.app.use(this.comReportPath, routerComReport)
-        this.app.use(this.thReportPath, routerThReport)
-        this.app.use(this.areaPath, routerArea)
-        this.app.use(this.postPath, routerPost)
-    
-     
+        this.app.use(this.rolePath, routerRole);
+        this.app.use(this.userPath, routerUser);
+        this.app.use(this.authPath, routerAuth);
+        this.app.use(this.collaboratorPath, routerCollaborator);
+        this.app.use(this.countInventoryPath, routerCountInventory);
+        this.app.use(this.comInventoryPath, routerComInventory);
+        this.app.use(this.thInventoryPath, routerThInventory);
+        this.app.use(this.countReportPath, routerCountReport);
+        this.app.use(this.comReportPath, routerComReport);
+        this.app.use(this.thReportPath, routerThReport);
+        this.app.use(this.areaPath, routerArea);
+        this.app.use(this.postPath, routerPost);
     }
 
     listen() {
         this.app.listen(this.port, () => {
-            console.log('Servidor corriendo en el puerto http://localhost:', this.port)
-        })
+            console.log(`Servidor corriendo en el puerto http://localhost:${this.port}`);
+        });
     }
-
 }
 
-
-
-export {Server};
+export { Server };
